@@ -2,17 +2,18 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStreamer
 import threading
 
-tokenizer = AutoTokenizer.from_pretrained("deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B")
-
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-1B")
+tokenizer.pad_token =tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(
-    pretrained_model_name_or_path="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
-    torch_dtype=torch.float16,
+    pretrained_model_name_or_path="meta-llama/Llama-3.2-1B",
+    torch_dtype=torch.float32,
+    device_map="auto",
+    offload_folder="offload"
 )
 
-model = model.to("cuda")
-
-input_text = "Hello, does 2 + 2 equal 5? Give certain answer."
+input_text = "Hello, how are you?"
 inputs = tokenizer(input_text, return_tensors="pt", padding=True, truncation=True)
+
 input_ids = inputs["input_ids"].to("cuda")
 attention_mask = inputs["attention_mask"].to("cuda")
 
@@ -25,6 +26,9 @@ threading.Thread(
         "attention_mask": attention_mask,
         "max_new_tokens": 1000,
         "streamer": streamer,
+        "top_p": 0.9,
+        "top_k": 50,
+        "temperature": 0.7,
     }
 ).start()
 
