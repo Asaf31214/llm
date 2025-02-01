@@ -18,7 +18,7 @@ attention_mask = inputs["attention_mask"].to("cuda")
 
 streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
 
-thread = threading.Thread(
+threading.Thread(
     target=model.generate,
     kwargs={
         "input_ids": input_ids,
@@ -26,8 +26,7 @@ thread = threading.Thread(
         "max_new_tokens": 1000,
         "streamer": streamer,
     }
-)
-thread.start()
+).start()
 
 for token in streamer:
     print(token, end="", flush=True)
